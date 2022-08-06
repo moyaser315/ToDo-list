@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+
+<head>
+  <meta charset="utf-8">
+  <title>to do list</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gentium+Book+Plus:ital@1&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+
+</head>
+
+<body>
+  <div class="box" id="heading">
+    <h1>hello this is <%=kindOfDay%> </h1>
+  </div>
+  <div class="box">
+    <% for(var i =0;i<loops ;i++){ %>
+    <div class="item">
+      <input type="checkbox">
+      <p> <%=newItem[i]%> </p>
+    </div>
+    <%}%>
+      <form class="item" action="/" method="post">
+        <input type="text" name="new" autocomplete="off" placeholder="enter the new item">
+        <button type="submit" name="button">+</button>
+      </form>
+    </div>
+
+
+  </body>
+</html>
