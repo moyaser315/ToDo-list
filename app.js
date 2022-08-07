@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 let items=[];
 let workList=[]
-let today=day();
+let today=day.getDay();
 
 app.get("/", function(req, res) {
   let loops=items.length;
