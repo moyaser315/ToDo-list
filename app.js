@@ -13,6 +13,7 @@ let today = new Date();
 let dayNum = today.getDay();
 let day = "";
 let items=[];
+let workList=[]
 options = {
   day:"2-digit" ,
   month:"long" ,
@@ -56,7 +57,25 @@ app.get("/", function(req, res) {
   });
 })
 app.post("/", function(req, res) {
-  let newItem = req.body.new;
-  items.push(newItem);
-  res.redirect("/")
+  let newItem = req.body.new
+  if(req.body.button=="work"){
+    workList.push(newItem);
+    res.redirect("/work");
+  }else{
+    items.push(newItem);
+    res.redirect("/");
+  }
+
+})
+app.get("/work",function(req,res){
+  let loops=workList.length;
+  res.render("lists",{kindOfDay:"work list", newItem: workList,
+  loops:loops})
+})
+app.post("/work",function(req,res){
+  workList.push(req.body.new);
+  res.redirect("/work");
+})
+app.get("/about",function(req,res){
+  res.render("about");
 })
