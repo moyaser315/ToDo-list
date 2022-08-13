@@ -2,6 +2,7 @@
 const express = require("express");
 const bodyParser = require("body-parser");
 const app = express();
+var _ = require('lodash');
 const day = require(__dirname + "/day.js"); //local file
 const mongoose = require('mongoose');
 mongoose.connect('mongodb://localhost:27017/todolist');
@@ -13,6 +14,12 @@ const itemsScheme = new mongoose.Schema({
   }
 });
 const Item = mongoose.model("itemList", itemsScheme);
+const listSchema = {
+  name: String,
+  items: [itemsScheme]
+};
+
+const List = mongoose.model("List", listSchema);
 //                    to use ejs
 app.set('view engine', 'ejs');
 //                    to start server
@@ -26,98 +33,106 @@ app.use(express.static("public"));
 var items=[];
 let workList=[]
 let today=day.getDay();
-Item.find({},function(err,docs){
-  if(err){
-    console.log(err);
-  }else{
-    docs.forEach(function(log) {
-      items.push(log.name);
-    });
-  }
-})
+const item1 = new Item({
+  name: "Welcome to your todolist!"
+});
+
+const item2 = new Item({
+  name: "Hit the + button to add a new item."
+});
+
+const item3 = new Item({
+  name: "<-- Hit this to delete an item."
+});
+
+const defaultItems = [item1, item2, item3];
+
 
 app.get("/", function(req, res) {
-  res.render("lists", {
-    kindOfDay: today,
-    newItem : items,
-    path:"/"
-  });
-})
-app.post("/", function(req, res) {
-  if(req.body.new==''){
-    res.redirect("/");
-  }else{
-     let newItem = new Item({
-    name: req.body.new
-  });
-    newItem.save();
-    items=[];
-    items.push(newItem.name);
-  Item.find({},function(err,docs){
-    if(err){
-      console.log(err);
-    }else{
-      docs.forEach(function(log) {
-        items.push(log.name);
+
+  Item.find({}, function(err, foundItems){
+
+    if (foundItems.length === 0) {
+      Item.insertMany(defaultItems, function(err){
+        if (err) {
+          console.log(err);
+        }
       });
+      res.redirect("/");
+    } else {
+      res.render("list", {listTitle: "Today", newListItems: foundItems});
     }
-  })
+  });
+
+});
+
+app.get("/:customListName", function(req, res){
+  const customListName = _.capitalize(req.params.customListName);
+
+  List.findOne({name: customListName}, function(err, foundList){
+    if (!err){
+      if (!foundList){
+        //Create a new list
+        const list = new List({
+          name: customListName,
+          items: defaultItems
+        });
+        list.save();
+        res.redirect("/" + customListName);
+      } else {
+        //Show an existing list
+
+        res.render("list", {listTitle: foundList.name, newListItems: foundList.items});
+      }
+    }
+  });
+
+
+
+});
+
+app.post("/", function(req, res){
+
+  const itemName = req.body.newItem;
+  const listName = req.body.list;
+
+  const item = new Item({
+    name: itemName
+  });
+
+  if (listName === "Today"){
+    item.save();
     res.redirect("/");
-}
-})
-app.get("/about", function(req, res) {
+  } else {
+    List.findOne({name: listName}, function(err, foundList){
+      foundList.items.push(item);
+      foundList.save();
+      res.redirect("/" + listName);
+    });
+  }
+});
+
+app.post("/delete", function(req, res){
+  const checkedItemId = req.body.checkbox;
+  const listName = req.body.listName;
+
+  if (listName === "Today") {
+    Item.findByIdAndRemove(checkedItemId, function(err){
+      if (!err) {
+        res.redirect("/");
+      }
+    });
+  } else {
+    List.findOneAndUpdate({name: listName}, {$pull: {items: {_id: checkedItemId}}}, function(err, foundList){
+      if (!err){
+        res.redirect("/" + listName);
+      }
+    });
+  }
+
+
+});
+
+app.get("/about", function(req, res){
   res.render("about");
-})
-app.post("/delete",function(req,res){
-  //storing value of check box
-  let x =req.body.check;
-  //fiinding its index
-  let index=items.indexOf(x);
-  //splicing it and removing it from the items list
-  items.splice(index,1);
-  //deleting it from db
-  Item.deleteOne({name:x},function(err){if(err){console.log(err)};})
-  res.redirect("/");
-})
-//////////////////////// craeting new routes
-app.get("/:route",function(req,res){
-res.render("lists",{
-  kindOfDay: req.params.route,
-  newItem:items,
-  path:"/"+req.params.route
-})
-})
-app.post("/:route",function(req,res){
-  let path ="/"+ req.params.route ;
-  let list = req.params.route + "List";
-  let newList = mongoose.model(list,itemsScheme)
-  if(req.body.new==''){
-    res.redirect(path);
-    items=[];
-  newList.find({},function(err,docs){
-    if(err){
-      console.log(err);
-    }else{
-      docs.forEach(function(log) {
-        items.push(log.name);
-      });
-    }
-  });
-  }else
-  {let newItem = new newList({
-    name: req.body.new
-  });
-  newItem.save();
-  items=[];
-  newList.find({},function(err,docs){
-    if(err){
-      console.log(err);
-    }else{
-      docs.forEach(function(log) {
-        items.push(log.name);
-      });
-    }
-  });
-  items.push(newItem.name);
-  res.redirect(path);}
-})
+});
