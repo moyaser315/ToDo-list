@@ -5,7 +5,8 @@ const app = express();
 var _ = require('lodash');
 const day = require(__dirname + "/day.js"); //local file
 const mongoose = require('mongoose');
-mongoose.connect('mongodb://localhost:27017/todolist');
+mongoose.connect('mongodb+srv://admin-mo:test123@cluster0.blkv52c.mongodb.net/todolist');
+
 //                        mongoose scheme
 const itemsScheme = new mongoose.Schema({
   name: {
