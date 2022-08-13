@@ -13,7 +13,6 @@ const itemsScheme = new mongoose.Schema({
   }
 });
 const Item = mongoose.model("itemList", itemsScheme);
-const WorkItem = mongoose.model("workList", itemsScheme);
 //                    to use ejs
 app.set('view engine', 'ejs');
 //                    to start server
@@ -24,79 +23,36 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(express.static("public"));
-
-
-
-
-//////////////////                            start logic here
-let items = [];
-let workList = []
-let today = day.getDay();
-/////////////       always displayed
-const work = new Item({
-  name: "work"
-});
-const play = new Item({
-  name: "play"
-});
-const study = new Item({
-  name: "study"
-});
-Item.find({}, function(err, docs) {
-  if (err) {
-    console.log(err);
-  } else {
-    docs.forEach(function(log) {
-      items.push(log.name);
-    });
-  }
-});
-
+let items=[];
+let workList=[]
+let today=day();
 
 app.get("/", function(req, res) {
-  let loops = items.length;
   res.render("lists", {
     kindOfDay: today,
-    newItem: items,
-    loops: loops
+    newItem : names
   });
 })
 app.post("/", function(req, res) {
   let newItem = new Item({
     name: req.body.new
   });
-  let newWItem = new WorkItem({
-    name: req.body.new
-  });
-  if (req.body.button == "work") {
-    newWItem.save();
-    workList.push(newWItem.name);
-    res.redirect("/work");
-  } else {
     newItem.save();
-    items.push(newItem.name);
+ names.push(newItem);
     res.redirect("/");
-  }
-})
-app.get("/work", function(req, res) {
-  let loops = workList.length;
-  res.render("lists", {
-    kindOfDay: "work list",
-    newItem: workList,
-    loops: loops
-  })
-})
-app.post("/work", function(req, res) {
-  workList.push(req.body.new);
-  res.redirect("/work");
+
 })
 app.get("/about", function(req, res) {
   res.render("about");
 })
 app.post("/delete",function(req,res){
+  //storing value of check box
   let x =req.body.check;
-  let index=items.indexOf(x);
-  items.splice(index,1);
-  Item.deleteOne({name:x},function(err){console.log(err);})
+  //fiinding its index
+  let index=names.indexOf(x);
+  //splicing it and removing it from the items list
+  names.splice(index,1);
+  //deleting it from db
+  Item.deleteOne({name:x},function(err){if(err){console.log(err)};})
   res.redirect("/");
 })
