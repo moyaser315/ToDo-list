@@ -24,7 +24,7 @@ const List = mongoose.model("List", listSchema);
 //                    to use ejs
 app.set('view engine', 'ejs');
 //                    to start server
-app.listen(3000, function() {
+app.listen(3000||process.env.PORT, function() {
   console.log("service has started on port 3000");
 });
 app.use(bodyParser.urlencoded({
