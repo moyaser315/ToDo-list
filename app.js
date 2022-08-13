@@ -23,7 +23,7 @@ app.use(bodyParser.urlencoded({
   extended: true
 }));
 app.use(express.static("public"));
-let items=[];
+var items=[];
 let workList=[]
 let today=day.getDay();
 Item.find({},function(err,docs){
@@ -44,13 +44,26 @@ app.get("/", function(req, res) {
   });
 })
 app.post("/", function(req, res) {
-  let newItem = new Item({
+  if(req.body.new==''){
+    res.redirect("/");
+  }else{
+     let newItem = new Item({
     name: req.body.new
   });
     newItem.save();
+    items=[];
     items.push(newItem.name);
+  Item.find({},function(err,docs){
+    if(err){
+      console.log(err);
+    }else{
+      docs.forEach(function(log) {
+        items.push(log.name);
+      });
+    }
+  })
     res.redirect("/");
-
+}
 })
 app.get("/about", function(req, res) {
   res.render("about");
@@ -76,10 +89,35 @@ res.render("lists",{
 })
 app.post("/:route",function(req,res){
   let path ="/"+ req.params.route ;
-  let newItem = new Item({
+  let list = req.params.route + "List";
+  let newList = mongoose.model(list,itemsScheme)
+  if(req.body.new==''){
+    res.redirect(path);
+    items=[];
+  newList.find({},function(err,docs){
+    if(err){
+      console.log(err);
+    }else{
+      docs.forEach(function(log) {
+        items.push(log.name);
+      });
+    }
+  });
+  }else
+  {let newItem = new newList({
     name: req.body.new
   });
-    newItem.save();
-    items.push(newItem.name);
-  res.redirect(path);
+  newItem.save();
+  items=[];
+  newList.find({},function(err,docs){
+    if(err){
+      console.log(err);
+    }else{
+      docs.forEach(function(log) {
+        items.push(log.name);
+      });
+    }
+  });
+  items.push(newItem.name);
+  res.redirect(path);}
 })
