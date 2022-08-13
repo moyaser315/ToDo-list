@@ -25,12 +25,22 @@ app.use(bodyParser.urlencoded({
 app.use(express.static("public"));
 let items=[];
 let workList=[]
-let today=day();
+let today=day.getDay();
+Item.find({},function(err,docs){
+  if(err){
+    console.log(err);
+  }else{
+    docs.forEach(function(log) {
+      items.push(log.name);
+    });
+  }
+})
 
 app.get("/", function(req, res) {
   res.render("lists", {
     kindOfDay: today,
-    newItem : names
+    newItem : items,
+    path:"/"
   });
 })
 app.post("/", function(req, res) {
@@ -38,7 +48,7 @@ app.post("/", function(req, res) {
     name: req.body.new
   });
     newItem.save();
- names.push(newItem);
+    items.push(newItem.name);
     res.redirect("/");
 
 })
@@ -49,10 +59,27 @@ app.post("/delete",function(req,res){
   //storing value of check box
   let x =req.body.check;
   //fiinding its index
-  let index=names.indexOf(x);
+  let index=items.indexOf(x);
   //splicing it and removing it from the items list
-  names.splice(index,1);
+  items.splice(index,1);
   //deleting it from db
   Item.deleteOne({name:x},function(err){if(err){console.log(err)};})
   res.redirect("/");
+})
+//////////////////////// craeting new routes
+app.get("/:route",function(req,res){
+res.render("lists",{
+  kindOfDay: req.params.route,
+  newItem:items,
+  path:"/"+req.params.route
+})
+})
+app.post("/:route",function(req,res){
+  let path ="/"+ req.params.route ;
+  let newItem = new Item({
+    name: req.body.new
+  });
+    newItem.save();
+    items.push(newItem.name);
+  res.redirect(path);
 })

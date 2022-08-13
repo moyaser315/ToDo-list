@@ -3,16 +3,21 @@
   <h1>hello this is <%=kindOfDay%> </h1>
 </div>
 <div class="box">
-  <% for(var i =0;i<newItem.length ;i++){ %>
+
+  <%  newItem.forEach(function(log) {%>
   <form action="/delete" method="post">
     <div class="item">
-      <input onChange="this.form.submit()" type="checkbox"name="check" value="<%=newItem[i]%>">
-      <p> <%=newItem[i]%> </p>
+      <input onChange="this.form.submit()" type="checkbox"name="check" value="<%=log%>">
+      <p> <%=log%> </p>
     </div>
   </form>
+  <%  });%>
 
-  <%}%>
-      <form class="item" action="/" method="post">
+
+
+
+
+      <form class="item" action="<%=path%>" method="post">
         <input type="text" name="new" autocomplete="off" placeholder="enter the new item">
         <button type="submit" name="button" value=<%=kindOfDay%>>+</button>
   </form>
